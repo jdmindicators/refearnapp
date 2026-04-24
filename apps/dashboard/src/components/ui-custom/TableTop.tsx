@@ -36,79 +36,57 @@ export const TableTop = <TData, TOrder extends string>({
   rightActions,
   orderOptions,
 }: TableProps<TData, TOrder>) => {
-  const iconHiddenAt = hideOrder ? "md:hidden" : "lg:hidden"
-  const textVisibleAt = hideOrder ? "hidden md:flex" : "hidden lg:flex"
+  const iconHiddenAt = hideOrder ? "lg:hidden" : "xl:hidden"
+  const textVisibleAt = hideOrder ? "hidden lg:flex" : "hidden xl:flex"
 
   return (
-    <div className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
-      {hideOrder ? (
-        <div className="flex items-center gap-2 md:justify-between md:w-full">
-          <SearchInput
-            value={filters.email ?? ""}
-            onChange={onEmailChange}
-            placeholder={placeholder}
-            className="w-full md:w-[240px]"
-          />
-          <div className="flex items-center gap-2">
-            {rightActions}
-            {!affiliate && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="px-2 lg:px-4">
-                    <Settings2 className={`h-4 w-4 ${iconHiddenAt}`} />
-                    <div className={`${textVisibleAt} items-center gap-2`}>
-                      Columns <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(value)
-                        }
-                        className="capitalize"
-                      >
-                        {column.id}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-      ) : (
-        <>
-          <SearchInput
-            value={filters.email ?? ""}
-            onChange={onEmailChange}
-            placeholder={placeholder}
-            className="w-full md:w-[240px]"
-          />
+    <div className="py-4 grid grid-cols-1 gap-3 xl:flex xl:items-center xl:justify-between">
+      {/* Search Input: Full width until xl */}
+      <div className="w-full xl:w-[280px]">
+        <SearchInput
+          value={filters.email ?? ""}
+          onChange={onEmailChange}
+          placeholder={placeholder}
+          className="w-full"
+        />
+      </div>
 
-          <div className="flex items-center gap-2">
+      {/* 🟢 Actions Group: grid on mobile/tablet, flex on xl */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center xl:gap-3">
+        {!hideOrder && (
+          <div
+            className={rightActions ? "col-span-1" : "col-span-2 sm:col-span-1"}
+          >
             <OrderSelect
               value={filters}
               onChange={onOrderChange}
               affiliate={affiliate}
               options={orderOptions as OrderBy[]}
             />
+          </div>
+        )}
+
+        {rightActions && (
+          // 🟢 Spans full width on mobile, auto on sm+
+          <div className="col-span-2 sm:col-span-1 sm:w-auto">
             {rightActions}
+          </div>
+        )}
+
+        {!affiliate && (
+          <div className="col-span-2 sm:col-span-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="px-2 lg:px-4">
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto px-2 xl:px-4"
+                >
                   <Settings2 className={`h-4 w-4 ${iconHiddenAt}`} />
                   <div className={`${textVisibleAt} items-center gap-2`}>
                     Columns <ChevronDown className="h-4 w-4" />
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-
               <DropdownMenuContent align="end">
                 {table
                   .getAllColumns()
@@ -128,8 +106,8 @@ export const TableTop = <TData, TOrder extends string>({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   )
 }

@@ -22,9 +22,10 @@ import { useAppMutation } from "@/hooks/useAppMutation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Mail, Plus } from "lucide-react"
 import { AppDialog } from "@/components/ui-custom/AppDialog"
 import { InputField, TextareaField } from "@/components/Auth/FormFields"
+import { AffiliateUpdateDialog } from "@/components/ui-custom/AffiliateUpdateDialog"
 
 interface AffiliatesTableProps {
   orgId: string
@@ -49,6 +50,7 @@ export default function AffiliatesTable({
   orderOptions,
 }: AffiliatesTableProps) {
   const [openInvite, setOpenInvite] = useState(false)
+  const [openUpdate, setOpenUpdate] = useState(false)
   const inviteAction = isTeam
     ? inviteTeamAffiliateAction
     : inviteAffiliateAction
@@ -153,14 +155,25 @@ export default function AffiliatesTable({
               setFilters({ orderBy, orderDir })
             }
             rightActions={
-              <Button
-                onClick={() => setOpenInvite(true)}
-                size="sm"
-                className="gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Invite Affiliate
-              </Button>
+              mode !== "top" && (
+                <div className="grid grid-cols-2 gap-2 w-full sm:flex">
+                  <Button
+                    variant="outline"
+                    className="w-full px-2"
+                    onClick={() => setOpenUpdate(true)}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    <span className="text-xs">Update</span>
+                  </Button>
+                  <Button
+                    className="w-full px-2"
+                    onClick={() => setOpenInvite(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    <span className="text-xs">Invite</span>
+                  </Button>
+                </div>
+              )
             }
             orderOptions={orderOptions}
             onEmailChange={(email) => setFilters({ email: email || undefined })}
@@ -191,7 +204,7 @@ export default function AffiliatesTable({
         open={openInvite}
         onOpenChange={setOpenInvite}
         title="Invite Affiliate"
-        description="Invite a partner to join your affiliate program."
+        description="Invite an affiliate to join your affiliate program."
         confirmText="Send Invitation"
         confirmLoading={inviteMutation.isPending}
         onConfirm={form.handleSubmit(onInviteSubmit)}
@@ -202,8 +215,8 @@ export default function AffiliatesTable({
             <InputField
               control={form.control}
               name="email"
-              label="Partner Email"
-              placeholder="partner@example.com"
+              label="Affiliate Email"
+              placeholder="affiliate@example.com"
               type="email"
               affiliate={false}
             />
@@ -218,6 +231,12 @@ export default function AffiliatesTable({
           </form>
         </Form>
       </AppDialog>
+      <AffiliateUpdateDialog
+        open={openUpdate}
+        onOpenChange={setOpenUpdate}
+        orgId={orgId}
+        isTeam={isTeam}
+      />
     </div>
   )
 }

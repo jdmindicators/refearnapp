@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
-import { InputField } from "@/components/Auth/FormFields"
+import { CheckboxField, InputField } from "@/components/Auth/FormFields"
 import { SignUpFormValues, signUpSchema } from "@/lib/schema/signupSchema"
 import { SignupAffiliateServer } from "@/app/affiliate/[orgId]/(auth)/signup/action"
 import { SignupServer } from "@/app/(organization)/(auth)/signup/action"
@@ -36,6 +36,7 @@ import { useAppMutation } from "@/hooks/useAppMutation"
 import { SignupTeamServer } from "@/app/(organization)/organization/[orgId]/teams/(auth)/signup/action"
 import { useContrastColor } from "@/hooks/useContrastColor"
 import { PoweredByBranding } from "@/components/ui-custom/PoweredByBranding"
+import { registrationSettingsAtom } from "@/store/RegistrationSettingsAtom"
 type Props = {
   orgId?: string
   isPreview?: boolean
@@ -83,6 +84,7 @@ const Signup = ({
   } = useAtomValue(buttonCustomizationAtom)
   const authCardStyle = useAuthCard(affiliate)
   const textColor = useContrastColor(backgroundColor)
+  const regSettings = useAtomValue(registrationSettingsAtom)
   const { showCustomToast } = useCustomToast()
   const { getPath } = useAffiliatePath(orgId)
   const emailCache = useCachedValidation({
@@ -135,8 +137,15 @@ const Signup = ({
       : orgId
         ? affiliateMutation.isPending
         : normalMutation.isPending
-
+  const isTosRequired = !!(
+    regSettings.showTos &&
+    regSettings.tosUrl &&
+    regSettings.privacyPolicyUrl
+  )
+  const hasAcceptedTos = form.watch("acceptTos")
+  const isBlockedByTos = isTosRequired && !hasAcceptedTos
   const onSubmit = async (data: any) => {
+    if (isBlockedByTos) return
     if (isPreview) {
       setPreviewLoading(true)
       await new Promise((res) => setTimeout(res, 1500))
@@ -247,7 +256,6 @@ const Signup = ({
                   icon={Mail}
                   affiliate={affiliate}
                 />
-
                 <InputField
                   control={form.control}
                   name="password"
@@ -269,11 +277,55 @@ const Signup = ({
                   showPasswordToggle={true}
                   affiliate={affiliate}
                 />
-
+                {isTosRequired && (
+                  <div className="space-y-1">
+                    <CheckboxField
+                      control={form.control}
+                      name="acceptTos"
+                      affiliate={affiliate}
+                      label="I agree to the legal terms"
+                    />
+                    <div className="pl-7">
+                      {" "}
+                      <p
+                        className="text-xs leading-relaxed"
+                        style={{
+                          color: (affiliate && tertiaryTextColor) || undefined,
+                        }}
+                      >
+                        Read our{" "}
+                        <a
+                          href={regSettings.tosUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:opacity-80 transition-opacity"
+                          style={{
+                            color: (affiliate && linkTextColor) || undefined,
+                          }}
+                        >
+                          Terms of Service
+                        </a>{" "}
+                        and{" "}
+                        <a
+                          href={regSettings.privacyPolicyUrl || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:opacity-80 transition-opacity"
+                          style={{
+                            color: (affiliate && linkTextColor) || undefined,
+                          }}
+                        >
+                          Privacy Policy
+                        </a>
+                        .
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={isLoading || isBlockedByTos}
                   style={{
                     backgroundColor: isLoading
                       ? (affiliate && buttonDisabledBackgroundColor) ||
@@ -351,6 +403,7 @@ const Signup = ({
                     isPreview={isPreview}
                     page="signup"
                     isTeam={isTeam}
+                    disabled={isBlockedByTos}
                   />
                 </div>
 

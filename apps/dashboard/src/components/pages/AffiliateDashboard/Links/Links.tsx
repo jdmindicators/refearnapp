@@ -45,7 +45,7 @@ export default function Links({
     dashboardHeaderNameColor,
     cardHeaderPrimaryTextColor,
   } = useAtomValue(dashboardThemeCustomizationAtom)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const previewSimulation = useAtomValue(previewSimulationAtom)
   const {
     dashboardButtonDisabledTextColor,

@@ -14,7 +14,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 
-type SelectFieldProps = {
+export type SelectFieldProps = {
   control: any
   name: string
   label: string

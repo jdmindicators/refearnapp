@@ -1,5 +1,6 @@
 import { db } from "@/db/drizzle"
 import {
+  organization,
   organizationAuthCustomization,
   organizationDashboardCustomization,
 } from "@/db/schema"
@@ -14,17 +15,20 @@ import {
   defaultDashboardCustomization,
 } from "@/customization/Dashboard/defaultDashboardCustomization"
 import { AppError } from "@/lib/exceptions"
+import { RegistrationSettings } from "@/store/RegistrationSettingsAtom"
 
 export async function saveOrganizationCustomization(
   orgId: string,
   data: {
     auth?: Partial<AuthCustomization>
     dashboard?: Partial<DashboardCustomization>
+    registration?: RegistrationSettings
   }
 ) {
   if (
     (!data.auth || Object.keys(data.auth).length === 0) &&
-    (!data.dashboard || Object.keys(data.dashboard).length === 0)
+    (!data.dashboard || Object.keys(data.dashboard).length === 0) &&
+    !data.registration
   ) {
     throw new AppError({ status: 400, toast: "No customization data provided" })
   }
@@ -82,5 +86,21 @@ export async function saveOrganizationCustomization(
         .set({ dashboard: merged, updatedAt: new Date() })
         .where(eq(organizationDashboardCustomization.id, orgId))
     }
+  }
+  // ---- REGISTRATION ----
+  if (data.registration) {
+    await db
+      .update(organization)
+      .set({
+        askPromotionMethod: data.registration.askPromotionMethod,
+        askWebsiteUrl: data.registration.askWebsiteUrl,
+        askSocialHandle: data.registration.askSocialHandle,
+        askPromotionDetails: data.registration.askPromotionDetails,
+        showTos: data.registration.showTos,
+        tosUrl: data.registration.tosUrl,
+        privacyPolicyUrl: data.registration.privacyPolicyUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(organization.id, orgId))
   }
 }

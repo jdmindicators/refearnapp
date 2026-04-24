@@ -12,6 +12,7 @@ type GoogleButtonProps = {
   isPreview?: boolean
   page?: "login" | "signup"
   isTeam?: boolean
+  disabled?: boolean
 }
 
 export function GoogleButton({
@@ -21,6 +22,7 @@ export function GoogleButton({
   isPreview,
   page,
   isTeam = false,
+  disabled,
 }: GoogleButtonProps) {
   const {
     googleButtonTextColor,
@@ -34,6 +36,7 @@ export function GoogleButton({
   }, [])
   const type = isTeam ? "team" : affiliate ? "affiliate" : "organization"
   const handleClick = () => {
+    if (disabled) return
     if (isPreview) {
       window.open("https://www.google.com", "_blank")
     } else {
@@ -52,7 +55,8 @@ export function GoogleButton({
       variant="outline"
       onClick={handleClick}
       className="w-full flex items-center gap-2"
-      style={buttonStyles}
+      disabled={disabled}
+      style={disabled ? {} : buttonStyles}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

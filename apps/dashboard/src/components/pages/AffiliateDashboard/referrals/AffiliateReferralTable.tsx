@@ -32,7 +32,7 @@ export default function AffiliateReferralsTable({
   )
   const previewSimulation = useAtomValue(previewSimulationAtom)
   const dashboardCardStyle = useDashboardCard(true)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const { filters, setFilters } = useQueryFilter({})
 
   // Fake loading effect for preview pagination

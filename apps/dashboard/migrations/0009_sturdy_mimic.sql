@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ADD COLUMN "ask_promotion_details" boolean DEFAULT false NOT NULL;
