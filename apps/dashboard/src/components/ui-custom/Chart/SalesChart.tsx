@@ -59,7 +59,7 @@ export function ChartDailyMetrics({
 }: ChartDailyMetricsProps) {
   const previewSimulation = useAtomValue(previewSimulationAtom)
   useVerifyTeamSession(orgId, isTeam)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const { filters, setFilters } = useQueryFilter({
     yearKey: "chartYear",
     monthKey: "chartMonth",

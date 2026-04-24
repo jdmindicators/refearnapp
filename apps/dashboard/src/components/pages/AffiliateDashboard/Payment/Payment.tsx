@@ -37,7 +37,7 @@ export default function AffiliateCommissionTable({
     cardHeaderPrimaryTextColor,
     dashboardHeaderNameColor,
   } = useAtomValue(dashboardThemeCustomizationAtom)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const previewSimulation = useAtomValue(previewSimulationAtom)
   const dashboardCardStyle = useDashboardCard(affiliate)
   const { filters, setFilters } = useQueryFilter()

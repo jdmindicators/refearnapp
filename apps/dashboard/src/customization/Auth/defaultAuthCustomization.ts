@@ -57,6 +57,7 @@ export const defaultAuthCustomization = {
   useNotesCustomization: {
     customNotesLogin: "",
     customNotesSignup: "",
+    customNotesOnboarding: "",
   },
 }
 export type AuthCustomization = typeof defaultAuthCustomization

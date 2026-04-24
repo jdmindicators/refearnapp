@@ -66,7 +66,7 @@ const Cards = ({
     dashboardThemeCustomizationAtom
   )
   useVerifyTeamSession(orgId, isTeam)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const previewSimulation = useAtomValue(previewSimulationAtom)
   const dashboardCardStyle = useDashboardCard(affiliate)
   const kpiCard = useAtomValue(kpiCardCustomizationAtom)

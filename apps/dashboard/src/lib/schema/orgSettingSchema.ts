@@ -29,12 +29,6 @@ export const orgSettingsSchema = z.object({
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, "Invalid amount")
     .default("0"),
-  tosUrl: z
-    .string()
-    .url("Must be a valid URL")
-    .optional()
-    .or(z.literal("")) // Allow empty string
-    .nullable(),
   holdPeriodDays: z
     .string()
     .regex(/^\d+$/, "Must be a whole number")

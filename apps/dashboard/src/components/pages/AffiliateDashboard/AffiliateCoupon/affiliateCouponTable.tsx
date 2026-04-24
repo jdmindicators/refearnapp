@@ -43,7 +43,7 @@ export default function AffiliateCouponsTable({
     dashboardHeaderNameColor,
     cardHeaderPrimaryTextColor,
   } = useAtomValue(dashboardThemeCustomizationAtom)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const previewSimulation = useAtomValue(previewSimulationAtom)
   const dashboardCardStyle = useDashboardCard(true) // Always true for affiliate dashboard
   const showNotificationSwitch = useAtomValue(showNotificationAtom)

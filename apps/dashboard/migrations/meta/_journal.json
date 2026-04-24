@@ -43,6 +43,34 @@
       "when": 1776837176101,
       "tag": "0005_amusing_surge",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776964701244,
+      "tag": "0006_reflective_quicksilver",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776978880358,
+      "tag": "0007_strong_wonder_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776980931703,
+      "tag": "0008_gifted_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777003521808,
+      "tag": "0009_sturdy_mimic",
+      "breakpoints": true
     }
   ]
 }

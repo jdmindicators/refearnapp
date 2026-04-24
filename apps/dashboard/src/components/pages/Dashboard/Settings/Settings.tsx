@@ -83,7 +83,6 @@ export default function Settings({
       minimumPayoutThreshold: String(
         Number(orgData?.minimumPayoutThreshold ?? 0)
       ),
-      tosUrl: orgData?.tosUrl ?? "",
       holdPeriodDays: String(orgData?.holdPeriodDays ?? 45),
     }),
     [orgData]
@@ -411,19 +410,6 @@ export default function Settings({
                   affiliate={false}
                 />
               </div>
-              <FormSection title="Legal & TOS" borderTop>
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                  <InputField
-                    control={form.control}
-                    name="tosUrl"
-                    label="Terms of Service URL"
-                    placeholder="https://..."
-                    type="text"
-                    icon={FileText}
-                    affiliate={false}
-                  />
-                </div>
-              </FormSection>
             </CardContent>
           </Card>
 

@@ -66,7 +66,7 @@ export default function SocialTrafficPieChart({
   } = useAtomValue(dashboardThemeCustomizationAtom)
   const dashboardCardStyle = useDashboardCard(affiliate)
   useVerifyTeamSession(orgId, isTeam)
-  useVerifyAffiliateSession(orgId, affiliate)
+  useVerifyAffiliateSession(orgId, affiliate, isPreview)
   const {
     pieFallbackColor,
     pieColor2,

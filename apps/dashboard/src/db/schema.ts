@@ -80,6 +80,17 @@ export const AFFILIATE_STATUSES = [
 ] as const
 export type AffiliateStatus = (typeof AFFILIATE_STATUSES)[number]
 
+export const PROMOTION_METHODS = [
+  "social_media",
+  "blog_website",
+  "email_marketing",
+  "paid_ads",
+  "content_creation",
+  "offline_networking",
+  "other",
+] as const
+export type PromotionMethod = (typeof PROMOTION_METHODS)[number]
+
 export const COMMISSION_STATUSES = [
   "pending",
   "approved",
@@ -323,7 +334,17 @@ export const organization = pgTable(
     })
       .notNull()
       .default("0"),
+    askPromotionMethod: boolean("ask_promotion_method")
+      .default(false)
+      .notNull(),
+    askWebsiteUrl: boolean("ask_website_url").default(false).notNull(),
+    askSocialHandle: boolean("ask_social_handle").default(false).notNull(),
+    askPromotionDetails: boolean("ask_promotion_details")
+      .default(false)
+      .notNull(),
+    showTos: boolean("show_tos").default(false).notNull(),
     tosUrl: text("tos_url"),
+    privacyPolicyUrl: text("privacy_policy_url"),
     holdPeriodDays: integer("hold_period_days").notNull().default(45),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -447,9 +468,19 @@ export const affiliate = pgTable(
     image: text("image"),
     type: text("type").$type<AccountType>().default("AFFILIATE").notNull(),
     status: text("status").$type<AffiliateStatus>().notNull().default("active"),
+    promotionMethods: text("promotion_methods")
+      .$type<PromotionMethod[]>()
+      .array(),
+    promotionDetails: text("promotion_details"),
+    websiteUrl: text("website_url"),
+    socialHandle: text("social_handle"),
+    acceptedTosAt: timestamp("accepted_tos_at"),
     appliedAt: timestamp("applied_at"),
     reviewedAt: timestamp("reviewed_at"),
     signupIp: text("signup_ip"),
+    onboardingCompleted: boolean("onboarding_completed")
+      .default(false)
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     organizationId: text("organization_id")

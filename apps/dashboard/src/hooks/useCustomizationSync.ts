@@ -53,6 +53,11 @@ import { DashboardCustomization } from "@/customization/Dashboard/defaultDashboa
 import { api } from "@/lib/apiClient"
 import { useAppQuery } from "@/hooks/useAppQuery"
 import { ActionResult } from "@/lib/types/organization/response"
+import {
+  initialRegistrationSettingsAtom,
+  registrationSettingsAtom,
+} from "@/store/RegistrationSettingsAtom"
+import { Organization } from "@/lib/types/internal/database"
 
 type CustomizationType = "auth" | "dashboard" | "both"
 
@@ -115,7 +120,8 @@ export function useCustomizationSync(
   const setInitialLogoutButton = useSetAtom(
     initialLogoutButtonCustomizationAtom
   )
-
+  const setReg = useSetAtom(registrationSettingsAtom)
+  const setInitialReg = useSetAtom(initialRegistrationSettingsAtom)
   const apiCall = useMemo(() => {
     if (!orgId) return null
     // We navigate the proxy based on the type
@@ -154,7 +160,15 @@ export function useCustomizationSync(
     [] as const,
     { enabled: !!orgId }
   )
-
+  const orgQuery = useAppQuery(
+    ["organization-data", orgId],
+    async (): Promise<ActionResult<Organization>> => {
+      const res = await api.organization.org([orgId!])
+      return res as ActionResult<Organization>
+    },
+    [] as const,
+    { enabled: !!orgId }
+  )
   useEffect(() => {
     if (!query.data) return
 
@@ -248,6 +262,30 @@ export function useCustomizationSync(
       }
     }
   }, [query.data])
+  useEffect(() => {
+    if (!orgQuery.data) return
 
-  return query
+    const org = orgQuery.data
+    const regData = {
+      askPromotionMethod: org.askPromotionMethod ?? false,
+      askWebsiteUrl: org.askWebsiteUrl ?? false,
+      askSocialHandle: org.askSocialHandle ?? false,
+      askPromotionDetails: org.askPromotionDetails ?? false,
+      showTos: org.showTos ?? false,
+      tosUrl: org.tosUrl || "",
+      privacyPolicyUrl: org.privacyPolicyUrl || "",
+    }
+
+    setReg(regData)
+    setInitialReg(regData)
+  }, [orgQuery.data, setReg, setInitialReg])
+  return {
+    ...query,
+    isPending: query.isPending || orgQuery.isPending,
+    isError: query.isError || orgQuery.isError,
+    refetch: () => {
+      query.refetch().then(() => console.log("refetched"))
+      orgQuery.refetch().then(() => console.log("refetched"))
+    },
+  }
 }

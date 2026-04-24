@@ -77,7 +77,6 @@ export const getOrgData = async (
       isPrivate: org.isPrivate,
       programType: org.programType as "open" | "invite_only" | "application",
       minimumPayoutThreshold: String(org.minimumPayoutThreshold ?? "0"),
-      tosUrl: org.tosUrl ?? "",
       holdPeriodDays: org.holdPeriodDays,
     },
   }

@@ -22,6 +22,7 @@ import {
   toastCustomizationAtom,
   yearSelectCustomizationAtom,
 } from "@/store/DashboardCustomizationAtom"
+import { registrationSettingsAtom } from "@/store/RegistrationSettingsAtom"
 
 // Derived atom that combines auth + dashboard live states
 const liveCustomizationsAtom = atom((get) => ({
@@ -46,6 +47,7 @@ const liveCustomizationsAtom = atom((get) => ({
     useChartCustomization: get(chartCustomizationAtom),
     usePieChartColorCustomization: get(pieChartColorCustomizationAtom),
   },
+  registration: get(registrationSettingsAtom),
 }))
 
 // React hook helper to get the live state easily

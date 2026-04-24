@@ -24,7 +24,7 @@ import { useVerifyTeamSession } from "@/hooks/useVerifyTeamSession"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { SimulationInfoCard } from "@/components/ui-custom/SimulationInfoCard"
 import { showNotificationAtom } from "@/store/ShowNotificationAtom"
-import { UserLicense } from "@/lib/server/organization/getLicense"
+import { registrationHasChangesAtom } from "@/store/RegistrationSettingsAtom"
 
 export default function CustomizationPage({
   orgId,
@@ -42,6 +42,7 @@ export default function CustomizationPage({
   useVerifyTeamSession(orgId, isTeam)
   const authHasChanges = useAtomValue(authHasChangesAtom)
   const dashboardHasChanges = useAtomValue(dashboardHasChangesAtom)
+  const regHasChanges = useAtomValue(registrationHasChangesAtom)
   const [showNotification, setShowNotification] = useAtom(showNotificationAtom)
   const [showMissingPaypal, setShowMissingPaypal] = useAtom(
     showMissingPaypalAtom
@@ -49,7 +50,7 @@ export default function CustomizationPage({
   const [previewSimulation, setPreviewSimulation] = useAtom(
     previewSimulationAtom
   )
-  const hasChanges = authHasChanges || dashboardHasChanges
+  const hasChanges = authHasChanges || dashboardHasChanges || regHasChanges
   const liveCustomizations = useLiveCustomizations()
   const queryClient = useQueryClient()
   const mutation = useAppMutation<AppResponse, void>(
@@ -74,7 +75,11 @@ export default function CustomizationPage({
           await queryClient.invalidateQueries({
             queryKey: ["customizations", "both", orgId],
           })
-          console.log("invalidated")
+          await queryClient.invalidateQueries({
+            queryKey: ["organization-data", orgId],
+          })
+
+          console.log("Both customization and organization queries invalidated")
         }
       },
     }
@@ -327,7 +332,6 @@ export default function CustomizationPage({
               />
             </>
           )}
-
           <TabsContent value="sidebar">
             <SidebarProvider affiliate orgId={orgId}>
               <div className="relative lg:w-full">

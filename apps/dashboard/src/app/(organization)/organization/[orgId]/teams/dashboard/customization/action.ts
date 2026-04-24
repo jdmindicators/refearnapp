@@ -12,6 +12,7 @@ export async function saveTeamCustomizationsAction(
   data: {
     auth?: Partial<AuthCustomization>
     dashboard?: Partial<DashboardCustomization>
+    registration?: any
   }
 ): Promise<MutationData> {
   return handleAction("saveCustomizationsAction", async () => {

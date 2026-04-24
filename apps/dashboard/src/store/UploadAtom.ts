@@ -8,6 +8,7 @@ export interface UploadedFile {
   file: File
   progress: number
   status: FileStatus
+  url?: string
 }
 
 interface UploadNamespace {
@@ -114,7 +115,7 @@ export const addFileAtom = atom(
             ...latest,
             files: latest.files.map((f) =>
               f.id === newFile.id
-                ? { ...f, status: "success", progress: 100 }
+                ? { ...f, status: "success", progress: 100, url }
                 : f
             ),
           },
