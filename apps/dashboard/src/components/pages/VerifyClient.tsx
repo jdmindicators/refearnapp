@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import EmailVerified from "@/components/pages/Email-verified"
 import PendingState from "@/components/ui-custom/PendingState"
 import ErrorState from "@/components/ui-custom/ErrorState"
+import PendingApproval from "@/components/pages/PendingApproval"
 
 export default function VerifyClient({
   token,
@@ -79,6 +80,19 @@ export default function VerifyClient({
     )
   }
   if (data?.mode) {
+    if (
+      data.tokenType === "affiliate" &&
+      data.redirectUrl?.includes("pending-approval")
+    ) {
+      return (
+        <PendingApproval
+          affiliate={true}
+          plan={"ULTIMATE"}
+          orgId={data.activeOrgId}
+        />
+      )
+    }
+
     return (
       <EmailVerified
         affiliate={data.tokenType === "affiliate"}
@@ -90,5 +104,6 @@ export default function VerifyClient({
       />
     )
   }
+
   return null
 }

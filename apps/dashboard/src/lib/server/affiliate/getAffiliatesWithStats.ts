@@ -7,7 +7,8 @@ import {
   organization,
   affiliatePayoutMethod,
   referrals,
-  promotionCodes, // Added import
+  promotionCodes,
+  AffiliateStatus, // Added import
 } from "@/db/schema"
 import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm"
 import { buildWhereWithDate } from "@/util/BuildWhereWithDate"
@@ -46,8 +47,10 @@ export async function getAffiliatesWithStatsAction(
     limit?: number
     offset?: number
     email?: string
+    status?: AffiliateStatus
   }
 ) {
+  const targetStatus = opts?.status ?? "active"
   // 1. Clicks & Links (This part was mostly fine, but we'll keep it isolated)
   const clickSq = db
     .select({
@@ -73,7 +76,12 @@ export async function getAffiliatesWithStatsAction(
         months
       )
     )
-    .where(eq(affiliate.organizationId, orgId))
+    .where(
+      and(
+        eq(affiliate.organizationId, orgId),
+        eq(affiliate.status, targetStatus)
+      )
+    )
     .groupBy(affiliate.id, organization.websiteUrl, organization.referralParam)
     .as("click_sq")
 
@@ -95,7 +103,12 @@ export async function getAffiliatesWithStatsAction(
         months
       )
     )
-    .where(eq(affiliate.organizationId, orgId))
+    .where(
+      and(
+        eq(affiliate.organizationId, orgId),
+        eq(affiliate.status, targetStatus)
+      )
+    )
     .groupBy(affiliate.id)
     .as("ref_sq")
 
@@ -155,7 +168,12 @@ export async function getAffiliatesWithStatsAction(
         months
       )
     )
-    .where(eq(affiliate.organizationId, orgId))
+    .where(
+      and(
+        eq(affiliate.organizationId, orgId),
+        eq(affiliate.status, targetStatus)
+      )
+    )
     .groupBy(affiliate.id)
     .as("sales_sq")
 
@@ -181,7 +199,12 @@ export async function getAffiliatesWithStatsAction(
         months
       )
     )
-    .where(eq(affiliate.organizationId, orgId))
+    .where(
+      and(
+        eq(affiliate.organizationId, orgId),
+        eq(affiliate.status, targetStatus)
+      )
+    )
     .groupBy(affiliate.id)
     .as("paid_sq")
 
@@ -207,7 +230,12 @@ export async function getAffiliatesWithStatsAction(
         months
       )
     )
-    .where(eq(affiliate.organizationId, orgId))
+    .where(
+      and(
+        eq(affiliate.organizationId, orgId),
+        eq(affiliate.status, targetStatus)
+      )
+    )
     .groupBy(affiliate.id)
     .as("unpaid_sq")
 
@@ -279,7 +307,10 @@ export async function getAffiliatesWithStatsAction(
     return opts.orderDir === "asc" ? base : desc(base)
   })()
 
-  const whereConditions = [eq(affiliate.organizationId, orgId)]
+  const whereConditions = [
+    eq(affiliate.organizationId, orgId),
+    eq(affiliate.status, targetStatus),
+  ]
   if (opts?.email) {
     whereConditions.push(ilike(affiliate.email, `%${opts.email}%`))
   }

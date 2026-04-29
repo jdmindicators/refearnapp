@@ -31,6 +31,7 @@ type SessionPayload = {
   type: string
   role: string
   orgIds?: string[]
+  status?: string
   activeOrgId?: string
   orgId?: string
 }
@@ -181,7 +182,7 @@ export const VerifyServer = async ({ token, mode }: VerifyServerProps) => {
     const currentAffiliate = await db.query.affiliate.findFirst({
       where: eq(affiliate.id, sessionPayload.id),
     })
-
+    sessionPayload.status = currentAffiliate?.status
     let path = "email-verified"
     if (currentAffiliate?.status === "pending") {
       path = "pending-approval"

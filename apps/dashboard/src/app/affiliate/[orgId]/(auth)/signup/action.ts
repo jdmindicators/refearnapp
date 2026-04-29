@@ -132,6 +132,7 @@ export const SignupAffiliateServer = async ({
         organizationId,
         status: initialStatus,
         signupIp: ip,
+        acceptedTosAt: new Date(),
         appliedAt: org.programType === "application" ? new Date() : null,
       })
       .returning()
@@ -156,6 +157,7 @@ export const SignupAffiliateServer = async ({
         id: newAffiliate.id,
         email: newAffiliate.email,
         type: newAffiliate.type,
+        status: newAffiliate.status,
         organizationId: newAffiliate.organizationId,
         inviteToken,
       },

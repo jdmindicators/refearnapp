@@ -29,6 +29,7 @@ import { z } from "zod"
 import { useAppMutation } from "@/hooks/useAppMutation"
 import { completeAffiliateOnboardingAction } from "@/app/affiliate/[orgId]/(auth)/onboarding/action"
 import { MultiSelectField } from "@/components/ui-custom/MultiSelectField"
+import { useQueryClient } from "@tanstack/react-query"
 
 const onboardingSchema = z.object({
   websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
@@ -57,6 +58,7 @@ const AffiliateOnboarding = ({
 }: Props) => {
   const [previewLoading, setPreviewLoading] = useState(false)
   const regSettings = useAtomValue(registrationSettingsAtom)
+  const queryClient = useQueryClient()
   const mutation = useAppMutation(
     async (values: OnboardingValues) => {
       return completeAffiliateOnboardingAction(orgId, values)
@@ -64,6 +66,13 @@ const AffiliateOnboarding = ({
     {
       affiliate: true,
       enableRedirect: true,
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries({
+            queryKey: ["verify-affiliate-session", orgId],
+          })
+          .then(() => console.log("invalidated"))
+      },
     }
   )
   const { backgroundColor } = useAtomValue(themeCustomizationAtom)

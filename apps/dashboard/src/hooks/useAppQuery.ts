@@ -7,6 +7,8 @@ import { ActionResult } from "@/lib/types/organization/response"
 type QueryKeyPrimitive = string | number | boolean | null | undefined | object
 interface UseAppQueryOptions {
   enabled?: boolean
+  staleTime?: number
+  gcTime?: number
 }
 type AppQueryResponse<T> = {
   data?: T
@@ -36,8 +38,8 @@ export function useAppQuery<Args extends unknown[], TData>(
     },
     enabled: options?.enabled ?? true,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: options?.staleTime ?? 5 * 60 * 1000,
+    gcTime: options?.gcTime ?? 5 * 60 * 1000,
   })
 
   return {

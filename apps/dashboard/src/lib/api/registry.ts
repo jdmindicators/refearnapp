@@ -33,6 +33,7 @@ import {
   GET_ORG_AFFILIATES_STATS_PATH,
   GET_ORG_CURRENCY_PATH,
   GET_ORG_CUSTOMIZATION_ALL_PATH,
+  GET_ORG_AFFILIATE_DETAIL_PATH,
   GET_ORG_CUSTOMIZATION_AUTH_PATH,
   GET_ORG_CUSTOMIZATION_DASHBOARD_PATH,
   GET_ORG_DOMAIN_MANAGE_PATH,
@@ -58,6 +59,7 @@ import {
   GET_TEAM_REFERRERS_PATH,
   GET_TEAM_TIME_SERIES_PATH,
   GET_TEAM_WEBHOOK_KEY_PATH,
+  GET_TEAM_AFFILIATE_DETAIL_PATH,
 } from "@/lib/api/paths"
 import { AffiliateLinkWithStats } from "@/lib/types/affiliate/affiliateLinkWithStats"
 import { AffiliatePaymentRow } from "@/lib/types/affiliate/affiliatePaymentRow"
@@ -68,6 +70,7 @@ import { TeamRow } from "@/lib/types/internal/teamsRow"
 import { PromotionCodeType } from "@/lib/types/organization/promotion"
 import { AffiliateCouponData } from "@/lib/types/affiliate/affiliateCouponData"
 import { ReferralRow } from "@/lib/types/internal/ReferralRow"
+import { AffiliateDetail } from "@/lib/types/affiliate/affiliateDetail"
 
 export const API_CONFIG = {
   affiliate: {
@@ -158,6 +161,10 @@ export const API_CONFIG = {
           hasNext: boolean
         }>,
       },
+      affiliateDetail: {
+        path: GET_ORG_AFFILIATE_DETAIL_PATH,
+        response: {} as ActionResult<AffiliateDetail>,
+      },
       referrals: {
         path: GET_ORG_REFERRALS_TABLE_PATH,
         response: {} as ActionResult<{
@@ -246,6 +253,10 @@ export const API_CONFIG = {
             rows: AffiliateStats[]
             hasNext: boolean
           }>,
+        },
+        affiliateDetail: {
+          path: GET_TEAM_AFFILIATE_DETAIL_PATH,
+          response: {} as ActionResult<AffiliateDetail>,
         },
         referrals: {
           path: GET_TEAM_REFERRALS_TABLE_PATH,

@@ -12,15 +12,28 @@ const formatCurrency = (value: any, currency: string = "USD") => {
   }).format(amount)
 }
 
+const INTERACTIVE_CLASS = "p-0 h-auto font-medium text-slate-900 underline decoration-dashed decoration-slate-300 underline-offset-4 cursor-help hover:text-slate-600 transition-colors text-left"
+
 // 📦 Common columns shared between affiliate & payout tables
-export const commonAffiliateColumns = {
-  email: {
+export const getCommonAffiliateColumns = (onEmailClick?: (id: string) => void) => ({
+  email: ({
     accessorKey: "email",
     header: "Email",
-    cell: ({ row }: any) => (
-      <div className="lowercase">{row.getValue("email")}</div>
-    ),
-  },
+    cell: ({ row }: any) => {
+      const email = row.getValue("email")
+      if (onEmailClick) {
+        return (
+          <button
+            onClick={() => onEmailClick(row.original.id)}
+            className={INTERACTIVE_CLASS}
+          >
+            {email}
+          </button>
+        )
+      }
+      return <div className="lowercase text-sm">{email}</div>
+    },
+  } as any),
   links: {
     id: "links",
     header: "Links",
@@ -29,9 +42,10 @@ export const commonAffiliateColumns = {
         links={row.original.links}
         title="Affiliate Links"
         description="All links created by this affiliate."
+        triggerClassName={INTERACTIVE_CLASS}
       />
     ),
-  },
+  } as any,
   visitors: {
     accessorKey: "visitors",
     header: "Visitors",
@@ -78,4 +92,7 @@ export const commonAffiliateColumns = {
       )
     },
   },
-}
+});
+
+// 🚀 Instance for standard use (like Payout table) to prevent import errors
+export const commonAffiliateColumns = getCommonAffiliateColumns();

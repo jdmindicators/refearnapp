@@ -285,6 +285,7 @@ export const GET = handleRoute("Google OAuth Callback", async (req) => {
             status: initialStatus,
             appliedAt: initialStatus === "pending" ? new Date() : null,
             signupIp: req.headers.get("x-forwarded-for") || "unknown",
+            acceptedTosAt: new Date(),
           })
           .returning()
         aff = createdAff

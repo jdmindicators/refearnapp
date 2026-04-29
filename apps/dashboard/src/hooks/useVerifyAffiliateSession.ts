@@ -17,23 +17,32 @@ export function useVerifyAffiliateSession(
     [orgId],
     {
       enabled: !!orgId && affiliate && !isPreview,
+      staleTime: 0,
+      gcTime: 0,
     }
   )
   useEffect(() => {
-    if (!affiliate || isPreview || query.isPending) return
+    if (
+      !affiliate ||
+      isPreview ||
+      query.isPending ||
+      query.queryResult.isFetching
+    )
+      return
     const result = query.data
     if (result?.reason === "needs_onboarding") {
-      router.replace(`/affiliate/${orgId}/onboarding`)
+      router.push(`/onboarding`)
       return
     }
 
     if (query.error) {
-      router.push(`/affiliate/${orgId}/login`)
+      router.push(`/login`)
     }
   }, [
     query.data,
     query.error,
     query.isPending,
+    query.queryResult.isFetching,
     orgId,
     affiliate,
     isPreview,

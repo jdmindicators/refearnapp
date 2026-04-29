@@ -2,10 +2,12 @@
 import { handleAction } from "@/lib/handleAction"
 import { getTeamAuthAction } from "@/lib/server/team/getTeamAuthAction"
 import { inviteAffiliateService } from "@/lib/server/internal/inviteAffiliateService"
+import { updateAffiliateStatusService } from "@/services/updateAffiliateStatusService"
 import {
   broadcastAffiliateService,
   BroadcastPayload,
 } from "@/lib/server/internal/broadcastAffiliateService"
+import { AffiliateStatus } from "@/db/schema"
 
 export const inviteTeamAffiliateAction = async (data: {
   email: string
@@ -29,5 +31,13 @@ export const broadcastTeamAffiliateUpdate = async (
       ok: true,
       toast: `Update sent to ${count} affiliate(s)!`,
     }
+  })
+}
+
+export const updateTeamAffiliateStatusAction = async (data: { orgId: string; affiliateId: string; status: AffiliateStatus }) => {
+  return handleAction("updateTeamAffiliateStatusAction", async () => {
+    await getTeamAuthAction(data.orgId)
+    await updateAffiliateStatusService(data)
+    return { ok: true, toast: `Affiliate status updated to ${data.status}!` }
   })
 }

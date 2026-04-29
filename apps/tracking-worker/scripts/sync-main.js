@@ -9,7 +9,7 @@ main = "src/index.ts"
 compatibility_date = "2026-01-01"
 
 [triggers]
-crons = ["*/10 * * * *", "0 0 * * *"]
+crons = ["*/10 * * * *"]
 
 [env.dev]
 name = "tracking-worker-dev"

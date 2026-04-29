@@ -76,8 +76,13 @@ export const GET_ORG_AFFILIATES_STATS_PATH = (
     orderDir?: OrderDir
     offset?: number
     email?: string
+    status?: string
   }
 ) => withQuery(`/api/organization/${orgId}/dashboard/affiliates`, query)
+export const GET_ORG_AFFILIATE_DETAIL_PATH = (
+  orgId: string,
+  affiliateId: string
+) => `/api/organization/${orgId}/dashboard/affiliates/${affiliateId}`
 export const GET_ORG_KPI_PATH = (
   orgId: string,
   year?: number,
@@ -172,7 +177,10 @@ export const GET_ORG_CURRENCY_PATH = (orgId: string) =>
 // =============================================================================
 // 👥 TEAM (STAFF) DASHBOARD PATHS
 // =============================================================================
-
+export const GET_TEAM_AFFILIATE_DETAIL_PATH = (
+  orgId: string,
+  affiliateId: string
+) => `/api/organization/${orgId}/teams/dashboard/affiliates/${affiliateId}`
 export const GET_TEAM_REFERRALS_TABLE_PATH = (
   orgId: string,
   query: { offset?: number }
@@ -190,6 +198,7 @@ export const GET_TEAM_AFFILIATES_STATS_PATH = (
     orderDir?: OrderDir
     offset?: number
     email?: string
+    status?: string
   }
 ) => withQuery(`/api/organization/${orgId}/teams/dashboard/affiliates`, query)
 export const GET_TEAM_KPI_PATH = (
