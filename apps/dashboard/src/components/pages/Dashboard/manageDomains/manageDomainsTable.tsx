@@ -245,13 +245,15 @@ export function ManageDomainsTable({
           hideOrder
           rightActions={
             <>
-              <FeatureDemo
-                videoId="04d5b016ea60451ca8942a49f5154961"
-                title="Domain Setup Guide"
-                description="Learn how to add and verify your custom domains or subdomains."
-                affiliate={affiliate}
-              />
-              <Button onClick={() => setOpen(true)}>Add Domain</Button>
+              <div className="grid grid-cols-2 gap-2 w-full sm:flex">
+                <FeatureDemo
+                  videoId="04d5b016ea60451ca8942a49f5154961"
+                  title="Domain Setup Guide"
+                  description="Learn how to add and verify your custom domains or subdomains."
+                  affiliate={affiliate}
+                />
+                <Button onClick={() => setOpen(true)}>Add Domain</Button>
+              </div>
               <AppDialog
                 open={open}
                 onOpenChange={setOpen}

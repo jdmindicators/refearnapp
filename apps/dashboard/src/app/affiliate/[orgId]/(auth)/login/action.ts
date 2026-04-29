@@ -52,6 +52,14 @@ export const LoginAffiliateServer = async ({
           "This account has been rejected. Please contact the organization for details.",
       })
     }
+    if (existingAffiliate?.status === "suspended") {
+      throw new AppError({
+        status: 403,
+        error: "Account Suspended",
+        toast:
+          "Your account is suspended. Please contact support for more information.",
+      })
+    }
     // Find the affiliate account with provider = 'credentials'
     const affiliateAcc = await db.query.affiliateAccount.findFirst({
       where: (aa, { and, eq }) =>

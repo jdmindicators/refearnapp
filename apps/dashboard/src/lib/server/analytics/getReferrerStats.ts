@@ -1,6 +1,6 @@
 import { db } from "@/db/drizzle"
-import { affiliateClick } from "@/db/schema"
-import { inArray, sql } from "drizzle-orm"
+import { affiliate, affiliateClick, affiliateLink } from "@/db/schema"
+import { eq, inArray, sql } from "drizzle-orm"
 import { buildWhereWithDate } from "@/util/BuildWhereWithDate"
 
 export async function getReferrerStats(
@@ -14,9 +14,17 @@ export async function getReferrerStats(
       clicks: sql<number>`COUNT(*)`.mapWith(Number),
     })
     .from(affiliateClick)
+    .innerJoin(
+      affiliateLink,
+      eq(affiliateLink.id, affiliateClick.affiliateLinkId)
+    )
+    .innerJoin(affiliate, eq(affiliate.id, affiliateLink.affiliateId))
     .where(
       buildWhereWithDate(
-        [inArray(affiliateClick.affiliateLinkId, linkIds)],
+        [
+          inArray(affiliateClick.affiliateLinkId, linkIds),
+          eq(affiliate.status, "active"),
+        ],
         affiliateClick,
         year,
         month

@@ -6,6 +6,7 @@ import { handleRoute } from "@/lib/handleRoute"
 import { AffiliateBasePayout } from "@/lib/types/affiliate/affiliateStats"
 import { OrderDir } from "@/lib/types/analytics/orderTypes"
 import { PayoutSortKeys } from "@/lib/types/organization/PayoutSortKeys"
+import { AffiliateStatus } from "@/db/schema"
 
 export const GET = handleRoute(
   "Get Organization Affiliates Stats",
@@ -25,6 +26,7 @@ export const GET = handleRoute(
       ? Number(searchParams.get("offset"))
       : 1
     const email = searchParams.get("email") || undefined
+    const status = (searchParams.get("status") as AffiliateStatus) || "active"
 
     const PAGE_SIZE = 10
     const ordered = orderBy === "none" ? undefined : orderBy
@@ -45,6 +47,7 @@ export const GET = handleRoute(
         limit: PAGE_SIZE + 1,
         offset: (offset - 1) * PAGE_SIZE,
         email,
+        status,
       }
     )) as AffiliateBasePayout[]
 

@@ -20,7 +20,6 @@ import {
   Loader2,
   Lock,
   Users,
-  DollarSign,
   FileText,
 } from "lucide-react"
 import { z } from "zod"
@@ -346,24 +345,24 @@ export default function Settings({
                     }
                     affiliate={false}
                   />
-                  <InputField
-                    control={form.control}
-                    name="holdPeriodDays"
-                    label="Hold Period (Days)"
-                    placeholder="Hold Period (Days)"
-                    type="number"
-                    icon={Clock}
-                    affiliate={false}
-                  />
-                  <InputField
-                    control={form.control}
-                    name="minimumPayoutThreshold"
-                    label="Min Payout Threshold"
-                    placeholder="Minimum Payout Threshold"
-                    type="number"
-                    icon={DollarSign}
-                    affiliate={false}
-                  />
+                  {/*<InputField*/}
+                  {/*  control={form.control}*/}
+                  {/*  name="holdPeriodDays"*/}
+                  {/*  label="Hold Period (Days)"*/}
+                  {/*  placeholder="Hold Period (Days)"*/}
+                  {/*  type="number"*/}
+                  {/*  icon={Clock}*/}
+                  {/*  affiliate={false}*/}
+                  {/*/>*/}
+                  {/*<InputField*/}
+                  {/*  control={form.control}*/}
+                  {/*  name="minimumPayoutThreshold"*/}
+                  {/*  label="Min Payout Threshold"*/}
+                  {/*  placeholder="Minimum Payout Threshold"*/}
+                  {/*  type="number"*/}
+                  {/*  icon={DollarSign}*/}
+                  {/*  affiliate={false}*/}
+                  {/*/>*/}
                 </div>
               </FormSection>
               <FormSection title="Commission Duration" borderTop borderBottom>

@@ -76,12 +76,12 @@ const TeamDashboardSidebar = ({
       items: [
         {
           title: "Coupons",
-          url: `/organization/${orgId}/dashboard/coupons`,
+          url: `/organization/${orgId}/teams/dashboard/coupons`,
           icon: TicketPercent,
         },
         {
           title: "Referrals",
-          url: `/organization/${orgId}/dashboard/referrals`,
+          url: `/organization/${orgId}/teams/dashboard/referrals`,
           icon: MousePointerClick,
         },
       ],
@@ -113,7 +113,7 @@ const TeamDashboardSidebar = ({
           ? [
               {
                 title: "Support Email",
-                url: `/organization/${orgId}/dashboard/supportEmail`,
+                url: `/organization/${orgId}/teams/dashboard/supportEmail`,
                 icon: MailQuestion,
               },
             ]

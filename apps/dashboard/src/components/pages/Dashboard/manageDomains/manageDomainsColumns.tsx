@@ -10,15 +10,10 @@ import {
   Trash2,
   Star,
   ArrowRightLeft,
-  MoreHorizontal,
   ShieldCheck,
 } from "lucide-react"
 import { DomainRow } from "@/lib/types/organization/domainRow"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { TableActionPopover } from "@/components/ui-custom/TableActionPopover"
 
 export const manageDomainsColumns = ({
   onToggleActive,
@@ -162,15 +157,7 @@ export const manageDomainsColumns = ({
       }
 
       return (
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-
-          <PopoverContent align="end" className="w-48 p-1">
-            <div className="flex flex-col">
+        <TableActionPopover>
               {/* Activate / Deactivate */}
               {canActivate && (
                 <Button
@@ -242,9 +229,7 @@ export const manageDomainsColumns = ({
                   </Button>
                 </>
               )}
-            </div>
-          </PopoverContent>
-        </Popover>
+        </TableActionPopover>
       )
     },
   },

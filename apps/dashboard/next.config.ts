@@ -18,6 +18,27 @@ const baseHost = getHostname(baseUrl)
 const redirectFromHost = redirectFromUrl ? getHostname(redirectFromUrl) : null
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'self';",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+        ],
+      },
+    ]
+  },
   async redirects() {
     // Only redirect if both URLs are provided and we are in self-hosted mode
     if (!isSelfHosted && redirectFromHost && baseUrl) {

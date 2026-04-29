@@ -1,6 +1,13 @@
 import { db } from "@/db/drizzle"
-import { inArray, or, sql } from "drizzle-orm"
-import { affiliateClick, affiliateInvoice, referrals } from "@/db/schema"
+import { eq, inArray, or, sql } from "drizzle-orm"
+import {
+  affiliate,
+  affiliateClick,
+  affiliateInvoice,
+  affiliateLink,
+  promotionCodes,
+  referrals,
+} from "@/db/schema"
 import { buildWhereWithDate } from "@/util/BuildWhereWithDate"
 
 export async function getTimeSeriesData<T>(
@@ -26,9 +33,17 @@ export async function getTimeSeriesData<T>(
     db
       .select({ day: clickDay, visits: sql<number>`count(*)`.mapWith(Number) })
       .from(affiliateClick)
+      .innerJoin(
+        affiliateLink,
+        eq(affiliateLink.id, affiliateClick.affiliateLinkId)
+      )
+      .innerJoin(affiliate, eq(affiliate.id, affiliateLink.affiliateId))
       .where(
         buildWhereWithDate(
-          [inArray(affiliateClick.affiliateLinkId, linkIds)],
+          [
+            inArray(affiliateClick.affiliateLinkId, linkIds),
+            eq(affiliate.status, "active"),
+          ],
           affiliateClick,
           year,
           month,
@@ -48,9 +63,25 @@ export async function getTimeSeriesData<T>(
           ),
       })
       .from(affiliateInvoice)
+      .leftJoin(
+        affiliateLink,
+        eq(affiliateLink.id, affiliateInvoice.affiliateLinkId)
+      )
+      .leftJoin(
+        promotionCodes,
+        eq(promotionCodes.id, affiliateInvoice.promotionCodeId)
+      )
+      .innerJoin(
+        affiliate,
+        sql`COALESCE(${affiliateLink.affiliateId}, ${promotionCodes.affiliateId}) = ${affiliate.id}`
+      )
       .where(
         buildWhereWithDate(
-          [attribution, sql`${affiliateInvoice.refundedAt} IS NULL`],
+          [
+            attribution,
+            sql`${affiliateInvoice.refundedAt} IS NULL`,
+            eq(affiliate.status, "active"),
+          ],
           affiliateInvoice,
           year,
           month,
@@ -66,9 +97,13 @@ export async function getTimeSeriesData<T>(
         signups: sql<number>`count(*)`.mapWith(Number),
       })
       .from(referrals)
+      .innerJoin(affiliate, eq(affiliate.id, referrals.affiliateId))
       .where(
         buildWhereWithDate(
-          [inArray(referrals.affiliateLinkId, linkIds)],
+          [
+            inArray(referrals.affiliateLinkId, linkIds),
+            eq(affiliate.status, "active"),
+          ],
           referrals,
           year,
           month,

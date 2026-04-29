@@ -15,9 +15,15 @@ import { Form } from "@/components/ui/form"
 import { useAppTable } from "@/hooks/useAppTable"
 import { OrderBy } from "@/lib/types/analytics/orderTypes"
 import z from "zod"
-import { useState } from "react"
-import { inviteTeamAffiliateAction } from "@/app/(organization)/organization/[orgId]/teams/dashboard/affiliates/action"
-import { inviteAffiliateAction } from "@/app/(organization)/organization/[orgId]/dashboard/affiliates/action"
+import { useMemo, useState } from "react"
+import {
+  inviteTeamAffiliateAction,
+  updateTeamAffiliateStatusAction,
+} from "@/app/(organization)/organization/[orgId]/teams/dashboard/affiliates/action"
+import {
+  inviteAffiliateAction,
+  updateAffiliateStatusAction,
+} from "@/app/(organization)/organization/[orgId]/dashboard/affiliates/action"
 import { useAppMutation } from "@/hooks/useAppMutation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -26,6 +32,11 @@ import { Mail, Plus } from "lucide-react"
 import { AppDialog } from "@/components/ui-custom/AppDialog"
 import { InputField, TextareaField } from "@/components/Auth/FormFields"
 import { AffiliateUpdateDialog } from "@/components/ui-custom/AffiliateUpdateDialog"
+import { AffiliateDetails } from "./AffiliateDetails"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useQueryClient } from "@tanstack/react-query"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AffiliateStatus } from "@/db/schema"
 
 interface AffiliatesTableProps {
   orgId: string
@@ -51,6 +62,12 @@ export default function AffiliatesTable({
 }: AffiliatesTableProps) {
   const [openInvite, setOpenInvite] = useState(false)
   const [openUpdate, setOpenUpdate] = useState(false)
+  const [selectedAffiliateId, setSelectedAffiliateId] = useState<string | null>(
+    null
+  )
+  const [status, setStatus] = useState<AffiliateStatus>("active")
+  const queryClient = useQueryClient()
+
   const inviteAction = isTeam
     ? inviteTeamAffiliateAction
     : inviteAffiliateAction
@@ -71,7 +88,44 @@ export default function AffiliatesTable({
   const onInviteSubmit = (data: z.infer<typeof inviteSchema>) => {
     inviteMutation.mutate({ ...data, orgId })
   }
-  const columns = AffiliatesColumns()
+
+  const { data: affiliateDetail, isPending: detailPending } = useAppQuery(
+    ["affiliate-detail", orgId, selectedAffiliateId, isTeam],
+    (oid, aid) =>
+      isTeam
+        ? api.organization.teams.dashboard.affiliateDetail([oid, aid!])
+        : api.organization.dashboard.affiliateDetail([oid, aid!]),
+    [orgId, selectedAffiliateId] as const,
+    { enabled: !!selectedAffiliateId }
+  )
+  const statusMutation = useAppMutation(
+    isTeam ? updateTeamAffiliateStatusAction : updateAffiliateStatusAction,
+    {
+      affiliate: false,
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries({
+            queryKey: [isTeam ? "team-affiliates" : "org-affiliates", orgId],
+          })
+          .then(() => console.log("invalidated"))
+      },
+    }
+  )
+
+  const columns = useMemo(
+    () =>
+      AffiliatesColumns(
+        (id) => {
+          setSelectedAffiliateId(id)
+        },
+        (id, newStatus) => {
+          statusMutation.mutate({ orgId, affiliateId: id, status: newStatus })
+        },
+        status
+      ),
+    [orgId, status, statusMutation]
+  )
+
   const { filters, setFilters } = useQueryFilter()
   const {
     data: searchData,
@@ -81,6 +135,7 @@ export default function AffiliatesTable({
     [
       isTeam ? "team-affiliates" : "org-affiliates",
       orgId,
+      status,
       filters.year,
       filters.month,
       filters.orderBy,
@@ -91,8 +146,11 @@ export default function AffiliatesTable({
     // The fetch function logic switches based on isTeam
     (id, query) =>
       isTeam
-        ? api.organization.teams.dashboard.affiliates([id, query])
-        : api.organization.dashboard.affiliates([id, query]),
+        ? api.organization.teams.dashboard.affiliates([
+            id,
+            { ...query, status },
+          ])
+        : api.organization.dashboard.affiliates([id, { ...query, status }]),
     [
       orgId,
       {
@@ -145,6 +203,45 @@ export default function AffiliatesTable({
           />
         </CardHeader>
         <CardContent>
+          {mode === "default" && (
+            <div className="border-b border-slate-100 mb-2">
+              <Tabs
+                value={status}
+                onValueChange={(v) => {
+                  setStatus(v as AffiliateStatus)
+                  setFilters({ offset: 1 })
+                }}
+                className="w-full"
+              >
+                <TabsList className="h-auto p-0 bg-transparent gap-6">
+                  <TabsTrigger
+                    value="active"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs font-semibold text-slate-500 data-[state=active]:text-indigo-600 transition-all"
+                  >
+                    Active
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="pending"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs font-semibold text-slate-500 data-[state=active]:text-indigo-600 transition-all"
+                  >
+                    Pending
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="suspended"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs font-semibold text-slate-500 data-[state=active]:text-indigo-600 transition-all"
+                  >
+                    Suspended
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="rejected"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs font-semibold text-slate-500 data-[state=active]:text-indigo-600 transition-all"
+                  >
+                    Rejected
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
           <TableTop
             filters={{
               orderBy: filters.orderBy,
@@ -230,6 +327,31 @@ export default function AffiliatesTable({
             />
           </form>
         </Form>
+      </AppDialog>
+
+      <AppDialog
+        open={!!selectedAffiliateId}
+        onOpenChange={(open) => !open && setSelectedAffiliateId(null)}
+        title="Affiliate Profile"
+        description="Review affiliate background and promotion strategy."
+        affiliate={false}
+        showFooter={false}
+      >
+        {detailPending ? (
+          <div className="space-y-4 p-4">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+            </div>
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+          </div>
+        ) : affiliateDetail ? (
+          <AffiliateDetails data={affiliateDetail} />
+        ) : null}
       </AppDialog>
       <AffiliateUpdateDialog
         open={openUpdate}

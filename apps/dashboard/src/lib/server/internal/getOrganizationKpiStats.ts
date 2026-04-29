@@ -29,7 +29,10 @@ export async function getOrganizationKpiStatsAction(
     })
     .from(affiliateLink)
     .innerJoin(affiliate, eq(affiliate.id, affiliateLink.affiliateId))
-    .where(eq(affiliate.organizationId, orgId))
+    .where(and(
+      eq(affiliate.organizationId, orgId),
+      eq(affiliate.status, "active")
+    ))
     .groupBy(affiliate.organizationId)
     .as("link_sq")
 
@@ -44,7 +47,11 @@ export async function getOrganizationKpiStatsAction(
       affiliateLink,
       eq(affiliateLink.id, affiliateClick.affiliateLinkId)
     )
-    .where(and(...getDateFilters(affiliateClick)))
+    .innerJoin(affiliate, eq(affiliate.id, affiliateLink.affiliateId))
+    .where(and(
+      ...getDateFilters(affiliateClick),
+      eq(affiliate.status, "active")
+    ))
     .groupBy(affiliateLink.affiliateId)
     .as("click_sq")
 
@@ -60,9 +67,12 @@ export async function getOrganizationKpiStatsAction(
       )`.as("paid_referrals"),
     })
     .from(referrals)
-    .where(
-      and(eq(referrals.organizationId, orgId), ...getDateFilters(referrals))
-    )
+    .innerJoin(affiliate, eq(affiliate.id, referrals.affiliateId))
+    .where(and(
+      eq(referrals.organizationId, orgId),
+      ...getDateFilters(referrals),
+      eq(affiliate.status, "active")
+    ))
     .groupBy(referrals.affiliateId)
     .as("ref_sq")
   // 4. Aggregate Invoices by Affiliate (Date Filtered)
@@ -103,8 +113,12 @@ export async function getOrganizationKpiStatsAction(
       promotionCodes,
       eq(affiliateInvoice.promotionCodeId, promotionCodes.id)
     )
-    .where(and(...getDateFilters(affiliateInvoice)))
-    .groupBy(affiliateLink.affiliateId, promotionCodes.affiliateId) // Group by the actual columns to avoid COALESCE ambiguity
+    .leftJoin(affiliate, sql`COALESCE(${affiliateLink.affiliateId}, ${promotionCodes.affiliateId}) = ${affiliate.id}`)
+    .where(and(
+      ...getDateFilters(affiliateInvoice),
+      eq(affiliate.status, "active")
+    ))
+    .groupBy(sql`COALESCE(${affiliateLink.affiliateId}, ${promotionCodes.affiliateId})`)
     .as("inv_sq")
   // 5. Final Join
   return db
@@ -151,5 +165,8 @@ export async function getOrganizationKpiStatsAction(
     .leftJoin(referralSq, eq(referralSq.affiliateId, affiliate.id))
     .leftJoin(invoiceSq, eq(invoiceSq.affiliateId, affiliate.id))
     .leftJoin(linkSq, eq(linkSq.organizationId, affiliate.organizationId))
-    .where(eq(affiliate.organizationId, orgId))
+    .where(and(
+      eq(affiliate.organizationId, orgId),
+      eq(affiliate.status, "active")
+    ))
 }
