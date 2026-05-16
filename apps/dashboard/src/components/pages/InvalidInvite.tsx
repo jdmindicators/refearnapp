@@ -103,8 +103,12 @@ const InvalidInvite = ({ orgId, isPreview, affiliate, message }: Props) => {
             </div>
           )}
         </Card>
-        {!brandingLoading && affiliate && showBranding && (
-          <PoweredByBranding color={textColor} />
+        {affiliate && (
+          <PoweredByBranding
+            color={textColor}
+            isLoading={brandingLoading}
+            showBranding={showBranding}
+          />
         )}
       </div>
       {isPreview && (

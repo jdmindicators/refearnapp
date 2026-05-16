@@ -338,8 +338,12 @@ const ResetPassword = ({
             </div>
           )}
         </Card>
-        {!brandingLoading && affiliate && showBranding && (
-          <PoweredByBranding color={textColor} />
+        {affiliate && (
+          <PoweredByBranding
+            color={textColor}
+            isLoading={brandingLoading}
+            showBranding={showBranding}
+          />
         )}
       </div>
       {isPreview && (

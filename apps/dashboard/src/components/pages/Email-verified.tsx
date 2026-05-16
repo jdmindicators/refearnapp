@@ -164,8 +164,12 @@ const EmailVerified = ({
             </Button>
           </CardContent>
         </Card>
-        {!brandingLoading && affiliate && showBranding && (
-          <PoweredByBranding color={textColor} />
+        {affiliate && (
+          <PoweredByBranding
+            color={textColor}
+            isLoading={brandingLoading}
+            showBranding={showBranding}
+          />
         )}
         {isPreview && (
           <div className="absolute bottom-0 right-0 p-2">
