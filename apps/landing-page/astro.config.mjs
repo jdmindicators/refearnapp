@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
-import cloudflare from '@astrojs/cloudflare';
 import vue from '@astrojs/vue';
 import react from '@astrojs/react';
 import mdx from '@astrojs/mdx';
@@ -11,8 +10,6 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-
-  adapter: cloudflare(),
   integrations: [vue(), react(), mdx()],
   output: 'static',
 });
