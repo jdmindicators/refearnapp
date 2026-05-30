@@ -35,9 +35,9 @@ const tags = entry.data.tags || [];
 <BlogLayout title={`${entry.data.title} | RefearnApp`} sections={sections}>
   <!-- Back to Blog Button -->
   <div class="mb-6">
-    <a
-      href="/blog"
-      class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors group"
+    <button
+      onclick="document.referrer.includes(window.location.host) ? window.history.back() : window.location.href='/blog'"
+      class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors group bg-transparent border-0 p-0 cursor-pointer"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +50,7 @@ const tags = entry.data.tags || [];
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
       </svg>
       Back to blog
-    </a>
+    </button>
   </div>
 
   <header class="mb-10">
