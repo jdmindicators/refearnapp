@@ -1,0 +1,705 @@
+---
+title: "How to Build a Referral System in React: Technical Implementation + Business Strategy"
+description: "A complete guide to building a production-ready referral system in React — from cookie attribution and Stripe integration to incentive structure, fraud prevention thinking, and the infrastructure decisions that determine whether your referral program scales or stalls."
+date: "2026-06-01"
+image: "how-to-build-a-referral-system-in-react"
+imageExt: "png"
+tags: ["Tutorial", "React", "Stripe", "Next.js"]
+---
+
+import CodeBlock from '../../components/blog/CodeBlock.astro';
+import El from '../../components/blog/ArticleElements.astro';
+import BlogImg from '../../components/blog/BlogImg.astro';
+import GithubCta from '../../components/blog/GithubCta.astro';
+
+<section id="introduction" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">How to Build a Referral System in React: Technical Implementation + Business Strategy</h2>
+
+  <p>
+    Every SaaS product eventually reaches the same inflection point: paid acquisition costs are climbing, organic growth is plateauing, and someone in a meeting says "we should do a referral program." The idea gets added to the roadmap. Six months later it's still not shipped because nobody agreed on the incentive structure, the engineering scope ballooned, and there was always something more urgent.
+  </p>
+
+  <p>
+    This guide eliminates both problems. The business decisions and the technical implementation, in one place, in the order you actually need to make them.
+  </p>
+
+  <El as="alert" type="info">
+    By the end you'll have a working React referral system — referral link generation, cookie-based attribution, Stripe checkout integration, and a referrer dashboard — plus a clear mental model of the business decisions that determine whether the system actually drives growth.
+  </El>
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="business-foundation" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">The Business Foundation: Decisions to Make Before Writing Code</h2>
+
+  <p>
+    Building the technical system before settling the business model is the most common mistake. You end up with infrastructure that doesn't match your incentive structure, or worse, a referral program nobody uses because the rewards aren't compelling enough to motivate sharing.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Decision 1: One-Sided vs. Double-Sided Incentives</h3>
+
+  <p>
+    <strong>One-sided</strong> — only the referrer gets rewarded. Common in B2B where the referrer is a trusted advisor and their recommendation carries enough weight on its own.
+  </p>
+  <p>
+    <strong>Double-sided</strong> — both the referrer and the new customer get rewarded. More friction to set up, but consistently outperforms one-sided programs in B2C and early-stage B2B SaaS. The new customer has a tangible reason to act on the recommendation instead of filing it away as "something to look at later."
+  </p>
+
+  <El as="alert" type="info">
+    Dropbox's famous referral program was double-sided — both parties got free storage. That single design decision drove 3,900% growth in 15 months. The lesson isn't "copy Dropbox." It's that removing the friction for the referred user is as important as motivating the referrer.
+  </El>
+
+  <p>
+    <strong>Rule of thumb:</strong> If your product is self-serve and the buying decision takes less than a week, use double-sided. If you have a longer sales cycle or the referrer's credibility is the primary driver, one-sided works.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Decision 2: Cash Commission vs. Credits vs. Discount</h3>
+
+  <div class="w-full overflow-x-auto rounded-2xl border border-slate-200 shadow-sm mb-8">
+    <table class="min-w-[600px] w-full divide-y divide-slate-200 m-0 text-left">
+      <thead class="bg-slate-50">
+      <tr>
+        <th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Reward Type</th>
+        <th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Best For</th>
+        <th class="px-6 py-4 text-xs font-bold uppercase text-slate-500">Risk</th>
+      </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white text-sm text-slate-600">
+      <tr>
+        <td class="px-6 py-4 font-bold text-slate-900">Cash commission (recurring)</td>
+        <td class="px-6 py-4">B2B SaaS, higher ACV products</td>
+        <td class="px-6 py-4">Higher cost, attracts professional affiliates who need management</td>
+      </tr>
+      <tr>
+        <td class="px-6 py-4 font-bold text-slate-900">Account credits</td>
+        <td class="px-6 py-4">Usage-based, freemium products</td>
+        <td class="px-6 py-4">Low perceived value if credits don't translate to real savings</td>
+      </tr>
+      <tr>
+        <td class="px-6 py-4 font-bold text-slate-900">Discount for referred user</td>
+        <td class="px-6 py-4">Self-serve, price-sensitive markets</td>
+        <td class="px-6 py-4">Trains customers to expect discounts, can cheapen brand perception</td>
+      </tr>
+      <tr>
+        <td class="px-6 py-4 font-bold text-slate-900">Flat fee per conversion</td>
+        <td class="px-6 py-4">Simple programs, one-time purchases</td>
+        <td class="px-6 py-4">No ongoing motivation for referrers once they've earned the flat fee</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    For most SaaS products the highest-converting structure is: <strong>referrer earns 20–30% recurring commission + referred user gets 10–20% off their first invoice.</strong> Both parties win immediately and the referrer stays motivated to send quality leads because their income depends on referred users staying.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Decision 3: Who Can Refer?</h3>
+
+  <ul class="list-disc pl-6 space-y-2">
+    <li><strong>All users:</strong> Maximum reach, minimum friction. Every signup gets a referral link automatically. Works well for self-serve products with low fraud risk.</li>
+    <li><strong>Opted-in users only:</strong> Users apply or opt in to become referrers. Higher quality referrals, lower fraud risk, but significantly lower referral volume. Better for high-ACV products where one bad referral creates a support burden.</li>
+    <li><strong>Curated affiliates:</strong> You invite specific users, influencers, or partners. Highest quality, lowest volume, most management overhead. Appropriate for enterprise products or specific partnership programs.</li>
+  </ul>
+
+  <p>
+    For early-stage SaaS: <strong>all users, opt-in at dashboard.</strong> Every user gets a referral link they can activate with one click. You're not curating at this stage — you're maximizing reach with minimal overhead.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Decision 4: Attribution Window</h3>
+
+  <p>How long after clicking a referral link should a conversion still be credited to the referrer?</p>
+
+  <ul class="list-disc pl-6 space-y-2">
+    <li><strong>7 days:</strong> Too short for SaaS. Most users evaluate products for longer than a week before paying.</li>
+    <li><strong>30 days:</strong> The standard. Covers most evaluation cycles.</li>
+    <li><strong>90 days:</strong> Better for high-ACV products with longer sales cycles.</li>
+    <li><strong>Lifetime:</strong> The referred customer is permanently attributed to the referrer. Every future payment generates a commission. High referrer motivation, complex to manage at scale.</li>
+  </ul>
+
+  <El as="alert" type="info">
+    Default recommendation: 30-day cookie window for attribution, with lifetime recurring commissions on subscription renewals regardless of whether the cookie is still active. The attribution window is about the initial conversion — once the customer is in your system, the commission relationship should persist.
+  </El>
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="technical-architecture" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">The Technical Architecture</h2>
+
+  <p>A React referral system has four distinct layers:</p>
+
+  <ol class="list-decimal pl-6 space-y-2">
+    <li><strong>Link generation</strong> — creating unique referral links per user</li>
+    <li><strong>Attribution</strong> — capturing the referral param and persisting it through to checkout</li>
+    <li><strong>Conversion</strong> — recording the conversion server-side via webhook</li>
+    <li><strong>Reporting</strong> — surfacing referral performance back to the referrer</li>
+  </ol>
+
+  <BlogImg
+    post="how-to-build-a-referral-system-in-react"
+    num="1"
+    alt="A four-layer architecture diagram stacked vertically. Layer 1 'Link Generation': User dashboard → unique slug → shareable URL. Layer 2 'Attribution': Visitor clicks link → React captures ?ref= param → cookie set with 30-day expiry. Layer 3 'Conversion': Stripe checkout → ref in metadata → webhook confirmed → commission recorded in DB. Layer 4 'Reporting': DB query → referrer dashboard → clicks, conversions, earnings. Dark slate background, each layer in a distinct indigo-bordered card, connecting arrows between layers."
+  />
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="link-generation" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">Layer 1: Referral Link Generation in React</h2>
+
+  <p>
+    Every user needs a unique, stable referral slug. Generate it at signup and store it alongside their user record. Don't generate it on-demand — a slug that changes breaks any links the user has already shared.
+  </p>
+
+  <CodeBlock
+    filename="hooks/useReferralLink.ts"
+    lang="typescript"
+    code={`// hooks/useReferralLink.ts
+import { useMemo } from 'react';
+import { useUser } from '@/hooks/useUser'; // Your auth hook
+
+export function useReferralLink() {
+  const { user } = useUser();
+
+  const referralLink = useMemo(() => {
+    if (!user?.referralSlug) return null;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+    return \`\${baseUrl}?ref=\${user.referralSlug}\`;
+  }, [user?.referralSlug]);
+
+      return { referralLink };
+    }`}
+  />
+
+  <CodeBlock
+    filename="components/ReferralLinkCard.tsx"
+    lang="tsx"
+    code={`// components/ReferralLinkCard.tsx
+'use client';
+
+    import { useState } from 'react';
+    import { useReferralLink } from '@/hooks/useReferralLink';
+
+    export function ReferralLinkCard() {
+      const { referralLink } = useReferralLink();
+      const [copied, setCopied] = useState(false);
+
+      async function handleCopy() {
+        if (!referralLink) return;
+        await navigator.clipboard.writeText(referralLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+
+      if (!referralLink) return null;
+
+      return (
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <h3 className="mb-1 text-sm font-bold text-slate-900">
+            Your Referral Link
+          </h3>
+          <p className="mb-4 text-xs text-slate-500">
+            Share this link and earn 20% of every customer you refer — recurring.
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 truncate rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700 border border-slate-200">
+              {referralLink}
+            </code>
+            <button
+              onClick={handleCopy}
+              className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-500"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      );
+    }`}
+  />
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Slug Generation Strategy on the Backend</h3>
+
+  <CodeBlock
+    filename="lib/referral/generate-slug.ts"
+    lang="typescript"
+    code={`// lib/referral/generate-slug.ts
+import { customAlphabet } from 'nanoid';
+
+// Alphanumeric only, no ambiguous characters (0, O, I, l)
+const generateId = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz', 8);
+
+    export function generateReferralSlug(username?: string): string {
+      if (username) {
+        // Use username if available and valid, fall back to random ID
+        const cleaned = username.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20);
+        if (cleaned.length >= 3) return cleaned;
+      }
+      return generateId();
+    }`}
+  />
+
+  <El as="alert" type="info">
+    Human-readable slugs (<code>?ref=john</code>) get shared more than random IDs (<code>?ref=xK9mP2</code>). People are more likely to share something that has their name in it — it feels like an identity signal, not just a tracking parameter.
+  </El>
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="attribution" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">Layer 2: Attribution — Capturing the Referral in React</h2>
+
+  <p>
+    When a visitor arrives via a referral link, capture the <code>?ref=</code> parameter immediately and persist it in a cookie. This needs to happen before anything else — before the user reads the landing page, before they navigate to a different section, before the session has any chance to lose the parameter.
+  </p>
+
+  <CodeBlock
+    filename="components/ReferralTracker.tsx"
+    lang="tsx"
+    code={`// components/ReferralTracker.tsx
+'use client';
+
+    import { useEffect } from 'react';
+    import { useSearchParams } from 'next/navigation';
+
+    const COOKIE_NAME = 'affiliate_ref';
+    const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
+    function isValidSlug(slug: string): boolean {
+      return /^[a-zA-Z0-9][a-zA-Z0-9-]{1,39}$/.test(slug);
+    }
+
+    function getCookie(name: string): string | null {
+      const match = document.cookie.match(new RegExp(\`(^| )\${name}=([^;]+)\`));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function setCookie(name: string, value: string, maxAge: number): void {
+      document.cookie = [
+        \`\${name}=\${encodeURIComponent(value)}\`,
+        \`max-age=\${maxAge}\`,
+        'path=/',
+        'SameSite=Lax',
+        process.env.NODE_ENV === 'production' ? 'Secure' : '',
+      ]
+        .filter(Boolean)
+        .join('; ');
+    }
+
+    export function ReferralTracker() {
+      const searchParams = useSearchParams();
+
+      useEffect(() => {
+        const ref = searchParams.get('ref');
+        if (!ref || !isValidSlug(ref)) return;
+
+        // First-click attribution — don't overwrite if already set
+        if (getCookie(COOKIE_NAME)) return;
+
+        setCookie(COOKIE_NAME, ref, COOKIE_MAX_AGE);
+      }, [searchParams]);
+
+      return null;
+    }`}
+  />
+
+  <p>Mount this in your root layout, wrapped in <code>Suspense</code>:</p>
+
+  <CodeBlock
+    filename="app/layout.tsx"
+    lang="tsx"
+    code={`// app/layout.tsx
+import { Suspense } from 'react';
+import { ReferralTracker } from '@/components/ReferralTracker';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <Suspense fallback={null}>
+          <ReferralTracker />
+        </Suspense>
+        {children}
+      </body>
+    </html>
+  );
+}`}
+  />
+
+  <El as="alert" type="warning">
+    <code>useSearchParams()</code> in the App Router requires the component to be wrapped in <code>Suspense</code> or it will throw during static rendering. The <code>fallback={null}</code> means no UI change — the tracker is invisible to the user.
+  </El>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Handling the OAuth Signup Gap</h3>
+
+  <p>
+    The most common attribution failure in React referral systems is the OAuth flow. When a user clicks a referral link then signs up via Google OAuth:
+  </p>
+
+  <ol class="list-decimal pl-6 space-y-2">
+    <li>They land on your page — cookie set ✅</li>
+    <li>They click "Sign up with Google" — redirect to Google</li>
+    <li>Google redirects back to your callback URL — the <code>?ref=</code> param is gone</li>
+    <li>Cookie is still there ✅ — attribution survives</li>
+  </ol>
+
+  <p>
+    The cookie persists through OAuth redirects as long as the callback URL is on your domain. The only failure case is if your OAuth callback clears cookies or redirects to a subdomain — check this specifically in your auth implementation.
+  </p>
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="conversion" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">Layer 3: Conversion — Stripe Integration</h2>
+
+  <p>
+    When a user initiates checkout, read the referral cookie server-side and attach it to the Stripe session as metadata. The conversion is then confirmed via webhook, not the client-side success page.
+  </p>
+
+  <CodeBlock
+    filename="app/api/checkout/route.ts"
+    lang="typescript"
+    code={`// app/api/checkout/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20',
+});
+
+    export async function POST(request: NextRequest): Promise<NextResponse> {
+      const affiliateRef = request.cookies.get('affiliate_ref')?.value ?? null;
+
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+        success_url: \`\${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}\`,
+        cancel_url: \`\${process.env.NEXT_PUBLIC_APP_URL}/pricing\`,
+        metadata: {
+          affiliate_ref: affiliateRef ?? '',
+        },
+        // Attach to subscription for recurring commission tracking
+        ...(affiliateRef && {
+          subscription_data: {
+            metadata: { affiliate_ref: affiliateRef },
+          },
+        }),
+      });
+
+      return NextResponse.json({ url: session.url });
+    }`}
+  />
+
+  <CodeBlock
+    filename="app/api/webhooks/stripe/route.ts"
+    lang="typescript"
+    code={`// app/api/webhooks/stripe/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { db } from '@/lib/db';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20',
+});
+
+    export async function POST(request: NextRequest): Promise<NextResponse> {
+      const body = await request.text();
+      const sig = request.headers.get('stripe-signature');
+
+      if (!sig) return NextResponse.json({ error: 'No signature' }, { status: 400 });
+
+      let event: Stripe.Event;
+      try {
+        event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+      } catch {
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+      }
+
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const ref = session.metadata?.affiliate_ref;
+
+        if (ref && session.payment_status === 'paid') {
+          // Idempotency guard
+          const exists = await db.referralConversion.findUnique({
+            where: { stripeSessionId: session.id },
+          });
+          if (!exists) {
+            await db.referralConversion.create({
+              data: {
+                referralSlug: ref,
+                stripeSessionId: session.id,
+                stripeCustomerId: session.customer as string,
+                amountCents: session.amount_total ?? 0,
+                commissionCents: Math.floor((session.amount_total ?? 0) * 0.2),
+                status: 'pending',
+                convertedAt: new Date(),
+              },
+            });
+          }
+        }
+      }
+
+      // Recurring commissions on subscription renewals
+      if (event.type === 'invoice.payment_succeeded') {
+        const invoice = event.data.object as Stripe.Invoice;
+        if (invoice.billing_reason !== 'subscription_cycle') {
+          return NextResponse.json({ received: true });
+        }
+
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const ref = sub.metadata?.affiliate_ref;
+
+        if (ref && invoice.amount_paid) {
+          await db.referralCommission.create({
+            data: {
+              referralSlug: ref,
+              stripeInvoiceId: invoice.id,
+              amountCents: invoice.amount_paid,
+              commissionCents: Math.floor(invoice.amount_paid * 0.2),
+              status: 'pending',
+              paidAt: new Date(),
+            },
+          });
+        }
+      }
+
+      return NextResponse.json({ received: true });
+    }`}
+  />
+
+  <BlogImg
+    post="how-to-build-a-referral-system-in-react"
+    num="2"
+    alt="A linear flow diagram showing the conversion path. Step 1: 'User clicks checkout button in React app'. Step 2: 'API route reads affiliate_ref cookie → attaches to Stripe session metadata'. Step 3: 'User completes Stripe checkout'. Step 4: 'Stripe fires checkout.session.completed webhook'. Step 5: 'Server reads affiliate_ref from metadata → writes commission record to Postgres'. Dark slate background, numbered steps in indigo circles, connecting arrows with subtle glow."
+  />
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="referrer-dashboard" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">Layer 4: The Referrer Dashboard in React</h2>
+
+  <p>
+    The dashboard is what keeps referrers motivated. Without visibility into their performance, sharing drops off within weeks. This is the feedback loop that sustains the referral program long-term.
+  </p>
+
+  <CodeBlock
+    filename="components/ReferralDashboard.tsx"
+    lang="tsx"
+    code={`// components/ReferralDashboard.tsx
+'use client';
+
+    import { useQuery } from '@tanstack/react-query';
+
+    interface ReferralStats {
+      totalClicks: number;
+      totalSignups: number;
+      totalConversions: number;
+      pendingCommissionCents: number;
+      paidCommissionCents: number;
+      recentConversions: {
+        id: string;
+        amountCents: number;
+        commissionCents: number;
+        status: string;
+        convertedAt: string;
+      }[];
+    }
+
+    async function fetchReferralStats(): Promise<ReferralStats> {
+      const res = await fetch('/api/referral/stats');
+      if (!res.ok) throw new Error('Failed to fetch referral stats');
+      return res.json();
+    }
+
+    function formatCents(cents: number): string {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(cents / 100);
+    }
+
+    export function ReferralDashboard() {
+      const { data, isLoading, error } = useQuery({
+        queryKey: ['referral-stats'],
+        queryFn: fetchReferralStats,
+        staleTime: 60_000,
+      });
+
+      if (isLoading) {
+        return (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100" />
+            ))}
+          </div>
+        );
+      }
+
+      if (error || !data) {
+        return <p className="text-sm text-slate-500">Could not load referral stats. Try refreshing.</p>;
+      }
+
+      const stats = [
+        { label: 'Clicks', value: data.totalClicks.toLocaleString() },
+        { label: 'Signups', value: data.totalSignups.toLocaleString() },
+        { label: 'Conversions', value: data.totalConversions.toLocaleString() },
+        { label: 'Pending Earnings', value: formatCents(data.pendingCommissionCents), highlight: true },
+      ];
+
+      return (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className={\`rounded-xl border p-4 \${stat.highlight ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200 bg-white'}\`}
+              >
+                <p className="text-xs font-medium text-slate-500">{stat.label}</p>
+                <p className={\`mt-1 text-2xl font-black \${stat.highlight ? 'text-indigo-700' : 'text-slate-900'}\`}>
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {data.recentConversions.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white">
+              <div className="border-b border-slate-100 px-4 py-3">
+                <h4 className="text-sm font-bold text-slate-900">Recent Conversions</h4>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {data.recentConversions.map((conversion) => (
+                  <div key={conversion.id} className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <p className="text-xs font-medium text-slate-700">
+                        {formatCents(conversion.amountCents)} sale
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(conversion.convertedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-indigo-600">
+                        +{formatCents(conversion.commissionCents)}
+                      </p>
+                      <span className={\`text-xs font-medium capitalize \${conversion.status === 'paid' ? 'text-emerald-600' : 'text-amber-600'}\`}>
+                        {conversion.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }`}
+  />
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="metrics" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">The Business Metrics That Tell You If It's Working</h2>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Referral Rate</h3>
+  <blockquote>
+    Referral Rate = Customers acquired via referral / Total new customers
+  </blockquote>
+  <p>
+    Healthy range: <strong>15–25%</strong> for a well-run SaaS referral program. Below 10% — the incentive is too weak or the program isn't visible enough. Above 30% early on — you're in a tight-knit community, lean into it hard.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Referrer Activation Rate</h3>
+  <blockquote>
+    Activation Rate = Users who shared at least once / Users with a referral link
+  </blockquote>
+  <p>
+    If less than 20% of users with referral links ever share them, the reward isn't compelling or the link is too hard to find. Add the referral link to your onboarding flow, post-payment confirmation page, and a persistent dashboard widget.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Viral Coefficient (K-Factor)</h3>
+  <blockquote>
+    K = Invites sent per user × Conversion rate of those invites
+  </blockquote>
+  <ul class="list-disc pl-6 space-y-2">
+    <li>K &lt; 0.1: Referral program has minimal impact on growth</li>
+    <li>K = 0.3–0.5: Meaningful contribution, cuts CAC materially</li>
+    <li>K &gt; 1.0: Viral growth — user base grows without external acquisition</li>
+  </ul>
+  <p>
+    Most SaaS products land between 0.1–0.3. Moving from 0.1 to 0.2 cuts your effective CAC in half. That's the goal — not virality, but meaningful CAC reduction.
+  </p>
+
+  <h3 class="text-2xl font-bold tracking-tight text-slate-900 mt-8 mb-4">Referred User LTV vs. Organic User LTV</h3>
+  <p>
+    Referred users consistently show 15–25% higher LTV in SaaS products. They arrive with social proof from someone they trust, lower skepticism, and higher intent. If your referred users are churning faster than organic users, the referral targeting is wrong — your referrers are sending unqualified traffic.
+  </p>
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="infrastructure-gap" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">The Infrastructure Gap</h2>
+
+  <p>
+    The React components and API routes above handle attribution and conversion recording cleanly. What they don't give you:
+  </p>
+
+  <ul class="list-disc pl-6 space-y-2">
+    <li>A referrer-facing portal with their full history, not just the in-app widget</li>
+    <li>Admin payout management — approving commissions, marking them as paid, handling disputes</li>
+    <li>Email notifications when commissions are earned or paid</li>
+    <li>Multi-campaign support — different commission rates for different referral programs</li>
+    <li>Coupon code tracking alongside link-based tracking</li>
+  </ul>
+
+  <El as="alert" type="warning">
+    Building all of that adds 8–12 weeks of engineering to what started as "a referral program." That's the real scope. The attribution logic is 2 days. The surrounding product is months.
+  </El>
+
+  <p>
+    <a href="/blog/self-hosted-affiliate-tracking-software" class="text-indigo-600 hover:text-indigo-800 underline font-medium">RefearnApp</a> is an open-source, self-hosted affiliate tracking platform that ships the affiliate portal, commission engine, payout tracking, and coupon code tracking so you don't build it from scratch. For a deeper look at how coupon-based tracking works alongside link tracking, see our guide on <a href="/blog/stripe-coupon-affiliate-tracking" class="text-indigo-600 hover:text-indigo-800 underline font-medium">tracking Stripe coupons for affiliates</a>.
+  </p>
+
+</section>
+
+<hr class="border-slate-200" />
+
+<section id="conclusion" class="scroll-mt-28 space-y-4">
+
+  <h2 class="text-3xl font-black tracking-tight text-slate-900 mt-12 mb-6">Conclusion & Next Steps</h2>
+
+  <p>A production referral system in React has four layers — link generation, cookie attribution, Stripe webhook conversion, and a referrer dashboard. The code above covers all four. The business decisions — incentive structure, attribution window, who can refer — determine whether anyone actually uses it.</p>
+
+  <ul class="list-disc pl-6 space-y-2">
+    <li>Use <strong>double-sided incentives</strong> for self-serve SaaS — both parties win immediately</li>
+    <li>Set a <strong>30-day cookie window</strong> minimum — SaaS evaluations take time</li>
+    <li>Use <strong>first-click attribution</strong> — the first referrer gets the credit, never overwrite the cookie</li>
+    <li>Confirm conversions via <strong>Stripe webhook only</strong> — never trust the client-side success page</li>
+    <li>Track your <strong>K-factor monthly</strong> — even moving from 0.1 to 0.2 cuts CAC in half</li>
+  </ul>
+
+  <GithubCta title="Ready to Build Without Subscription Limits?" />
+
+</section>
