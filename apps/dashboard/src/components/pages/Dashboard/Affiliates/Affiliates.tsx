@@ -37,6 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useQueryClient } from "@tanstack/react-query"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AffiliateStatus } from "@/db/schema"
+import { SyncNotice } from "@/components/ui-custom/SyncNotice"
 
 interface AffiliatesTableProps {
   orgId: string
@@ -251,6 +252,7 @@ export default function AffiliatesTable({
             onOrderChange={(orderBy, orderDir) =>
               setFilters({ orderBy, orderDir })
             }
+            leftActions={<SyncNotice />}
             rightActions={
               mode !== "top" && (
                 <div className="grid grid-cols-2 gap-2 w-full sm:flex">

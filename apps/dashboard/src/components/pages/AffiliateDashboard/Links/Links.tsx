@@ -29,6 +29,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/apiClient"
 import { useAppTable } from "@/hooks/useAppTable"
 import { useVerifyAffiliateSession } from "@/hooks/useVerifyAffiliateSession"
+import { SyncNotice } from "@/components/ui-custom/SyncNotice"
 
 interface AffiliateLinkProps {
   orgId: string
@@ -299,6 +300,7 @@ export default function Links({
                   buttonSize="w-4 h-4"
                 />
               )}
+              <SyncNotice />
             </div>
           </CardTitle>
           <div className="flex flex-row gap-2 items-center">

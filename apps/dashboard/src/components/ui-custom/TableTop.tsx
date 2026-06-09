@@ -22,6 +22,7 @@ type TableProps<TData, TOrder extends string> = {
   hideOrder?: boolean
   placeholder?: string
   rightActions?: ReactNode
+  leftActions?: ReactNode
   orderOptions?: TOrder[]
 }
 
@@ -34,6 +35,7 @@ export const TableTop = <TData, TOrder extends string>({
   hideOrder = false,
   placeholder = "Filter emails...",
   rightActions,
+  leftActions,
   orderOptions,
 }: TableProps<TData, TOrder>) => {
   const iconHiddenAt = hideOrder ? "lg:hidden" : "xl:hidden"
@@ -42,15 +44,21 @@ export const TableTop = <TData, TOrder extends string>({
   return (
     <div className="py-4 grid grid-cols-1 gap-3 xl:flex xl:items-center xl:justify-between">
       {/* Search Input: Full width until xl */}
-      <div className="w-full xl:w-[280px]">
-        <SearchInput
-          value={filters.email ?? ""}
-          onChange={onEmailChange}
-          placeholder={placeholder}
-          className="w-full"
-        />
+      <div className="w-full xl:w-auto xl:flex xl:items-center xl:gap-3">
+        <div className="w-full xl:w-[280px] flex-shrink-0">
+          <SearchInput
+            value={filters.email ?? ""}
+            onChange={onEmailChange}
+            placeholder={placeholder}
+            className="w-full"
+          />
+        </div>
+        {leftActions && (
+          <div className="w-full xl:w-auto mt-2 xl:mt-0 flex-shrink-0">
+            {leftActions}
+          </div>
+        )}
       </div>
-
       {/* 🟢 Actions Group: grid on mobile/tablet, flex on xl */}
       <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center xl:gap-3">
         {!hideOrder && (

@@ -42,6 +42,7 @@ import { api } from "@/lib/apiClient"
 import { useAppTable } from "@/hooks/useAppTable"
 import { PayoutSortKeys } from "@/lib/types/organization/PayoutSortKeys"
 import { Checkbox } from "@/components/ui/checkbox"
+import { SyncNotice } from "@/components/ui-custom/SyncNotice"
 
 interface AffiliatesTablePayoutProps {
   orgId: string
@@ -426,6 +427,7 @@ export default function PayoutTable({
             onOrderChange={(orderBy, orderDir) =>
               setFilters({ orderBy, orderDir })
             }
+            leftActions={<SyncNotice dataText="Clicks" />}
             rightActions={
               <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-background h-10">
                 <Checkbox
