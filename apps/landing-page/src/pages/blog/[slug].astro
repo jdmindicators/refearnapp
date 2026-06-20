@@ -2,8 +2,10 @@
 // apps/landing-page/src/pages/blog/[slug].astro
 import BlogLayout from '../../layouts/BlogLayout.astro';
 import PricingCTA from '../../components/blog/PricingCTA';
+import RelatedPosts from '../../components/blog/RelatedPosts';
 import Footer from '../../components/Footer.astro';
 import { getLocalBlogPosts } from '../../utils/blog';
+import { getRelatedPosts } from '../../utils/relatedPosts';
 
 export async function getStaticPaths() {
   const posts = await getLocalBlogPosts();
@@ -30,6 +32,27 @@ const autoHeroImage = `/blog-assets/${entry.data.image}/hero.${extension}`;
 
 // Safely retrieve tags if they exist in frontmatter
 const tags = entry.data.tags || [];
+
+// Fetch all posts to compute related (2 older + 2 newer, date + slug stable sort)
+const allPosts = await getLocalBlogPosts();
+const relatedRaw = getRelatedPosts(allPosts, entry.id);
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+const related = relatedRaw.map((post) => {
+  const ext = post.data.imageExt || 'png';
+  return {
+    title: post.data.title,
+    date: formatDate(post.data.date),
+    slug: post.id,
+    image: `/blog-assets/${post.data.image}/hero.${ext}`,
+  };
+});
 ---
 
 <BlogLayout title={`${entry.data.title} | RefearnApp`} sections={sections}>
@@ -88,6 +111,8 @@ const tags = entry.data.tags || [];
   <div class="prose prose-slate prose-indigo max-w-none">
     <Content />
   </div>
+
+  <RelatedPosts client:load posts={related} />
 </BlogLayout>
 
 <div class="mx-auto max-w-7xl px-6 pb-24 lg:px-8">
