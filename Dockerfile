@@ -34,8 +34,10 @@ ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
 ENV NEXT_PUBLIC_SELF_HOSTED=$NEXT_PUBLIC_SELF_HOSTED
 
 # 3. Build ONLY the dashboard using the CORRECT package name
-# We use the full name from your package.json
 RUN pnpm turbo run build --filter="@repo/dashboard"
+
+# 4. Generate database migrations (self-hosted mode uses ./self-hosted-migrations)
+RUN NEXT_PUBLIC_SELF_HOSTED=true pnpm --filter @repo/dashboard exec drizzle-kit generate
 
 # --- STAGE 3: Final Run ---
 FROM node:20-alpine AS dashboard
@@ -46,13 +48,15 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 # Copy Next.js standalone output
-
 COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/public ./apps/dashboard/public
 
+# Copy generated migrations and migration runner script
+COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/self-hosted-migrations ./apps/dashboard/self-hosted-migrations
+COPY --chown=nextjs:nodejs migrate.mjs ./migrate.mjs
+
 USER nextjs
 EXPOSE 3000
 
-# server.js is the entry point for standalone mode
 CMD ["node", "apps/dashboard/server.js"]
