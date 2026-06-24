@@ -56,6 +56,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/public ./apps/dash
 COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/self-hosted-migrations ./apps/dashboard/self-hosted-migrations
 COPY --chown=nextjs:nodejs migrate.mjs ./migrate.mjs
 
+# Install postgres package for the migration runner (not bundled in standalone output)
+RUN npm install postgres --no-save
+
 USER nextjs
 EXPOSE 3000
 
